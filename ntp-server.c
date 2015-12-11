@@ -51,6 +51,9 @@ int initHead( NtpData* ntpdata){
     }
 }
 
+int setLocalTiem(const char* localT){
+
+}
 
 int getLocalTime(char* localT){
    
@@ -140,14 +143,16 @@ int startBroadCast(){
 
 		sleep(1);
 
-		char smsg[] = {"hello !"};
+		char smsg[12] ; //change
         NtpData ntpdata;
         memset(&ntpdata,0,sizeof(NtpData));
         initHead(&ntpdata);
         getLocalTime(ntpdata.OriginateTS);
 
 		int ret = sendto(sock,&ntpdata,sizeof(NtpData),0,(struct sockaddr*)&addrto,nlen);
-
+        addrto.sin_addr.s_addr = htonl("192.168.0.234");//change
+        //ret=recvfrom(sock, smsg, sizeof(smsg), 0, (struct sockaddr*)&addrto,(socklen_t*)&nlen);//change
+        ret=recvfrom(sock, &ntpdata, sizeof(ntpdata), 0, (struct sockaddr*)&addrto,(socklen_t*)&nlen);
 		if(ret < 0){
 
 			printf("send message faild\n");
@@ -159,6 +164,8 @@ int startBroadCast(){
 			printf("send message success!\n");
            // printf("ntpdata = %x\n",ntpdata.Head[0] );
             printf("ntpdata.OriginateTS = %x\n",ntpdata.OriginateTS[0]);
+            printf("ntpdata.ReceiveTS= %x\n",ntpdata.ReceiveTS[0] );
+            printf("ntpdata.TransmitTs= %x\n",ntpdata.TransmitTs[0] );
 
 			
 
@@ -269,9 +276,30 @@ void startBroadCastRV(){
     {  
 
         //从广播地址接受消息  
+        int ret=recvfrom(sock, &ntpdata, sizeof(ntpdata), 0, (struct sockaddr*)&from,(socklen_t*)&len); 
+        /**************************************************
+         * @Description: get the time recieve the client 
+         *                  request
+         * @Author:      Knight
+         * @DateTime:    2015-12-11 16:48:11
+        **************************************************/
+        getLocalTime(ntpdata.ReceiveTS);
+        if(ret<=0)  
 
-        int ret=recvfrom(sock, &ntpdata, sizeof(ntpdata), 0, (struct sockaddr*)&from,(socklen_t*)&len);  
+        {  
 
+            printf("read error....\n");  
+            return -1;
+
+        } 
+        /**************************************************
+           * @Description: add --- send to client
+           * @Author:      Knight
+           * @DateTime:    2015-12-11 16:46:38
+          **************************************************/ 
+         getLocalTime(ntpdata.TransmitTs);
+       // ret = sendto(sock,"copy it ",8,0,(struct sockaddr*)&from,len);
+        ret = sendto(sock,&ntpdata,sizeof(NtpData),0,(struct sockaddr*)&from,len);
         if(ret<=0)  
 
         {  
@@ -284,7 +312,11 @@ void startBroadCastRV(){
 
         {         
 
-           printf("ntpdata.OriginateTS = %x\n",ntpdata.OriginateTS[0]);   
+            printf("send message success!\n");
+           // printf("ntpdata = %x\n",ntpdata.Head[0] );
+            printf("ntpdata.OriginateTS = %x\n",ntpdata.OriginateTS[0]);
+            printf("ntpdata.ReceiveTS= %x\n",ntpdata.ReceiveTS[0] );
+            printf("ntpdata.TransmitTs= %x\n",ntpdata.TransmitTs[0] );
 
         }  
 

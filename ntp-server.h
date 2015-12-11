@@ -51,6 +51,8 @@ void startBroadCastRV();
 int getLocalTime(char* localT);
 /**************************************************
  * @Description: 设置本地时间
- * @param:
- * @return:
+ * @param:	localT传入的本地时间，8byte，前4byte为sec
+ *			后4byte为usec
+ * @return: 0--成功 -1--失败
  **************************************************/
+ int setLocalTiem(const char* localT);
